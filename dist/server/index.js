@@ -156,10 +156,10 @@ function snapshot(run) {
 
 async function ensureDb(env) {
   if (!env.DB) return;
-  await env.DB.exec(`CREATE TABLE IF NOT EXISTS pipeline_runs_v2 (
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS pipeline_runs_v2 (
     id TEXT PRIMARY KEY, scenario_id TEXT NOT NULL, sample_id TEXT NOT NULL, status TEXT NOT NULL, step INTEGER NOT NULL,
     repaired INTEGER NOT NULL, replayed INTEGER NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, actions_json TEXT NOT NULL
-  )`);
+  )`).run();
 }
 
 async function persist(run, env) {
