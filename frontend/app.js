@@ -156,7 +156,7 @@ async function mutate(action, automatic = false) {
   if (!state.run || (state.busy && !automatic)) return;
   if (!automatic) setBusy(true);
   try {
-    const response = await fetch(`/api/runs/${state.run.id}/${action}`, { method: "POST" });
+    const response = await fetch(`/api/runs/${state.run.id}/${action}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ run: state.run }) });
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Action failed");
     const previousStatus = state.run.status;

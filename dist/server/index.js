@@ -67,7 +67,10 @@ export default {
       const match = url.pathname.match(/^\/api\/runs\/([a-z0-9]+)(?:\/(tick|repair|replay))?$/);
       if (match) {
         const [, id, action] = match;
-        const run = RUNS.get(id) || await load(id, env);
+        const stored = RUNS.get(id) || await load(id, env);
+        const body = request.method === "POST" ? await request.json().catch(() => ({})) : {};
+        const supplied = validSnapshot(body.run, id);
+        const run = newerRun(stored, supplied);
         if (!run) return json({ error: "run_not_found" }, 404);
         if (request.method === "GET" && !action) return json(snapshot(run));
         if (request.method !== "POST" || !action) return json({ error: "method_not_allowed" }, 405);
@@ -93,6 +96,34 @@ export default {
 function createRun(scenarioId, sampleId = "commerce_orders") {
   const now = new Date().toISOString();
   return { id: crypto.randomUUID().replaceAll("-", "").slice(0, 12), scenarioId, sampleId, status: "running", step: 0, repaired: false, replayed: false, createdAt: now, updatedAt: now, actions: [] };
+}
+
+function validSnapshot(value, id) {
+  if (!value || value.id !== id || !SCENARIOS[value.scenario?.id] || !SAMPLES[value.sample?.id]) return null;
+  const step = Number(value.step);
+  if (!Number.isInteger(step) || step < 0 || step > 6) return null;
+  const repaired = value.status === "repairing" || value.status === "healthy";
+  const replayed = value.status === "healthy";
+  return {
+    id,
+    scenarioId: value.scenario.id,
+    sampleId: value.sample.id,
+    status: replayed ? "healthy" : repaired ? "repairing" : step >= 4 ? "incident" : "running",
+    step,
+    repaired,
+    replayed,
+    createdAt: typeof value.created_at === "string" ? value.created_at : new Date().toISOString(),
+    updatedAt: typeof value.updated_at === "string" ? value.updated_at : new Date().toISOString(),
+    actions: Array.isArray(value.actions) ? value.actions.slice(-10) : [],
+  };
+}
+
+function newerRun(stored, supplied) {
+  if (!stored) return supplied;
+  if (!supplied) return stored;
+  if (supplied.replayed && !stored.replayed) return supplied;
+  if (supplied.repaired && !stored.repaired) return supplied;
+  return supplied.step > stored.step ? supplied : stored;
 }
 
 function tick(run) {
