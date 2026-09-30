@@ -4,6 +4,8 @@ DriftOps is an interactive data reliability and ML operations lab. A reviewer ch
 
 **Live demo:** [driftops-ai.korivichetan5.chatgpt.site](https://driftops-ai.korivichetan5.chatgpt.site)
 
+**Source:** [github.com/chetan10510/driftops-ai](https://github.com/chetan10510/driftops-ai)
+
 ## 90-second recruiter test
 
 1. Choose one of six workloads, such as **Fintech payments** or **Logistics shipments**.
