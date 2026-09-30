@@ -19,6 +19,18 @@ class Scenario:
     bad_field: str
 
 
+@dataclass(frozen=True)
+class Sample:
+    id: str
+    name: str
+    industry: str
+    description: str
+    sources: tuple[str, ...]
+    events_per_batch: int
+    recommended_scenario: str
+    icon: str
+
+
 SCENARIOS = {
     item.id: item
     for item in (
@@ -27,6 +39,18 @@ SCENARIOS = {
         Scenario("late_events", "Late mobile events", "Hourly customer features are incomplete", "event_time lateness must be below 10 minutes", "Offline mobile sessions arrived beyond the configured event-time watermark.", "Widen the watermark to 30 minutes and backfill the affected window.", "freshness.event_time", "event_time"),
         Scenario("pii_leak", "PII contract breach", "Raw email values appear in an analytics topic", "customer_email must be tokenized before Silver", "A new support export bypassed the tokenization transform.", "Route support exports through the PII tokenizer and rotate exposed snapshots.", "policy.customer_email", "customer_email"),
         Scenario("model_drift", "Feature distribution drift", "Churn alerts spike without matching behavior", "prediction drift PSI must remain below 0.20", "The billing source changed null plan values to unknown, shifting plan_tier distribution.", "Normalize unknown plan values and retrain from a versioned feature snapshot.", "drift.plan_tier", "plan_tier"),
+    )
+}
+
+SAMPLES = {
+    item.id: item
+    for item in (
+        Sample("commerce_orders", "Commerce orders", "E-commerce", "Checkout, catalog, and refund events feeding revenue and customer marts.", ("Checkout API", "Postgres CDC", "Refund API"), 1240, "duplicate_burst", "shopping-cart"),
+        Sample("saas_subscriptions", "SaaS subscriptions", "B2B SaaS", "Product usage and billing changes feeding account health and renewal features.", ("Product events", "Stripe", "CRM"), 980, "schema_drift", "boxes"),
+        Sample("fintech_payments", "Fintech payments", "Financial services", "Authorized payments and support events with strict privacy controls.", ("Payment gateway", "Ledger CDC", "Support API"), 1560, "pii_leak", "landmark"),
+        Sample("mobile_sessions", "Mobile sessions", "Consumer app", "Online and offline sessions feeding engagement and retention features.", ("iOS events", "Android events", "Push service"), 1840, "late_events", "smartphone"),
+        Sample("logistics_shipments", "Logistics shipments", "Supply chain", "Scanner and carrier events feeding ETA and exception workflows.", ("Warehouse scanners", "Carrier API", "GPS stream"), 2110, "schema_drift", "truck"),
+        Sample("churn_features", "Customer churn", "Machine learning", "Usage, billing, and support signals feeding an explainable churn model.", ("Feature store", "Billing", "Support cases"), 720, "model_drift", "brain-circuit"),
     )
 }
 
@@ -39,6 +63,7 @@ def utcnow() -> str:
 class PipelineRun:
     id: str
     scenario: Scenario
+    sample: Sample
     status: str = "running"
     step: int = 0
     repaired: bool = False
@@ -76,7 +101,7 @@ class PipelineRun:
 
     def snapshot(self) -> dict[str, Any]:
         incident = self.step >= 4
-        processed = self.step * 1240 + (380 if self.replayed else 0)
+        processed = self.step * self.sample.events_per_batch + (round(self.sample.events_per_batch * 0.3) if self.replayed else 0)
         bad = 0 if self.replayed else (min(96, (self.step - 3) * 24) if incident else 0)
         good = max(0, processed - bad)
         quality = 100 if self.replayed else (72 if incident else 100)
@@ -100,6 +125,7 @@ class PipelineRun:
             "status": self.status,
             "step": self.step,
             "scenario": asdict(self.scenario),
+            "sample": asdict(self.sample),
             "created_at": self.created_at,
             "updated_at": self.updated_at,
             "metrics": {"processed": processed, "accepted": good, "quarantined": bad, "quality_score": quality, "consumer_lag_seconds": lag, "estimated_cost_usd": round(processed * 0.0000027, 4)},
@@ -131,7 +157,9 @@ class PipelineRun:
         ]
 
 
-def create_run(scenario_id: str) -> PipelineRun:
+def create_run(scenario_id: str, sample_id: str = "commerce_orders") -> PipelineRun:
     if scenario_id not in SCENARIOS:
         raise ValueError(f"Unknown scenario: {scenario_id}")
-    return PipelineRun(id=uuid4().hex[:12], scenario=SCENARIOS[scenario_id])
+    if sample_id not in SAMPLES:
+        raise ValueError(f"Unknown sample: {sample_id}")
+    return PipelineRun(id=uuid4().hex[:12], scenario=SCENARIOS[scenario_id], sample=SAMPLES[sample_id])

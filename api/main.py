@@ -6,7 +6,7 @@ from typing import Annotated
 from fastapi import FastAPI, HTTPException, Path
 from pydantic import BaseModel
 
-from driftops.engine import SCENARIOS, PipelineRun, create_run
+from driftops.engine import SAMPLES, SCENARIOS, PipelineRun, create_run
 
 
 app = FastAPI(title="DriftOps API", version="1.0.0")
@@ -15,6 +15,7 @@ runs: dict[str, PipelineRun] = {}
 
 class RunRequest(BaseModel):
     scenario: str
+    sample: str = "commerce_orders"
 
 
 @app.get("/health")
@@ -27,10 +28,15 @@ def scenarios() -> dict[str, object]:
     return {"scenarios": [asdict(value) for value in SCENARIOS.values()]}
 
 
+@app.get("/api/samples")
+def samples() -> dict[str, object]:
+    return {"samples": [asdict(value) for value in SAMPLES.values()]}
+
+
 @app.post("/api/runs", status_code=201)
 def start_run(request: RunRequest) -> dict[str, object]:
     try:
-        run = create_run(request.scenario)
+        run = create_run(request.scenario, request.sample)
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
     runs[run.id] = run

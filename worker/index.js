@@ -33,6 +33,15 @@ const SCENARIOS = {
   },
 };
 
+const SAMPLES = {
+  commerce_orders: { id: "commerce_orders", name: "Commerce orders", industry: "E-commerce", description: "Checkout, catalog, and refund events feeding revenue and customer marts.", sources: ["Checkout API", "Postgres CDC", "Refund API"], events_per_batch: 1240, recommended_scenario: "duplicate_burst", icon: "shopping-cart" },
+  saas_subscriptions: { id: "saas_subscriptions", name: "SaaS subscriptions", industry: "B2B SaaS", description: "Product usage and billing changes feeding account health and renewal features.", sources: ["Product events", "Stripe", "CRM"], events_per_batch: 980, recommended_scenario: "schema_drift", icon: "boxes" },
+  fintech_payments: { id: "fintech_payments", name: "Fintech payments", industry: "Financial services", description: "Authorized payments and support events with strict privacy controls.", sources: ["Payment gateway", "Ledger CDC", "Support API"], events_per_batch: 1560, recommended_scenario: "pii_leak", icon: "landmark" },
+  mobile_sessions: { id: "mobile_sessions", name: "Mobile sessions", industry: "Consumer app", description: "Online and offline sessions feeding engagement and retention features.", sources: ["iOS events", "Android events", "Push service"], events_per_batch: 1840, recommended_scenario: "late_events", icon: "smartphone" },
+  logistics_shipments: { id: "logistics_shipments", name: "Logistics shipments", industry: "Supply chain", description: "Scanner and carrier events feeding ETA and exception workflows.", sources: ["Warehouse scanners", "Carrier API", "GPS stream"], events_per_batch: 2110, recommended_scenario: "schema_drift", icon: "truck" },
+  churn_features: { id: "churn_features", name: "Customer churn", industry: "Machine learning", description: "Usage, billing, and support signals feeding an explainable churn model.", sources: ["Feature store", "Billing", "Support cases"], events_per_batch: 720, recommended_scenario: "model_drift", icon: "brain-circuit" },
+};
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -43,10 +52,14 @@ export default {
       if (url.pathname === "/api/scenarios" && request.method === "GET") {
         return json({ scenarios: Object.values(SCENARIOS) });
       }
+      if (url.pathname === "/api/samples" && request.method === "GET") {
+        return json({ samples: Object.values(SAMPLES) });
+      }
       if (url.pathname === "/api/runs" && request.method === "POST") {
         const body = await request.json();
         if (!SCENARIOS[body.scenario]) return json({ error: "unknown_scenario" }, 400);
-        const run = createRun(body.scenario);
+        if (!SAMPLES[body.sample]) return json({ error: "unknown_sample" }, 400);
+        const run = createRun(body.scenario, body.sample);
         RUNS.set(run.id, run);
         await persist(run, env);
         return json(snapshot(run), 201);
@@ -77,9 +90,9 @@ export default {
   },
 };
 
-function createRun(scenarioId) {
+function createRun(scenarioId, sampleId = "commerce_orders") {
   const now = new Date().toISOString();
-  return { id: crypto.randomUUID().replaceAll("-", "").slice(0, 12), scenarioId, status: "running", step: 0, repaired: false, replayed: false, createdAt: now, updatedAt: now, actions: [] };
+  return { id: crypto.randomUUID().replaceAll("-", "").slice(0, 12), scenarioId, sampleId, status: "running", step: 0, repaired: false, replayed: false, createdAt: now, updatedAt: now, actions: [] };
 }
 
 function tick(run) {
@@ -107,8 +120,9 @@ function replay(run) {
 
 function snapshot(run) {
   const scenario = SCENARIOS[run.scenarioId];
+  const sample = SAMPLES[run.sampleId] || SAMPLES.commerce_orders;
   const incident = run.step >= 4;
-  const processed = run.step * 1240 + (run.replayed ? 380 : 0);
+  const processed = run.step * sample.events_per_batch + (run.replayed ? Math.round(sample.events_per_batch * 0.3) : 0);
   const quarantined = run.replayed ? 0 : incident ? Math.min(96, (run.step - 3) * 24) : 0;
   const accepted = Math.max(0, processed - quarantined);
   const quality = run.replayed ? 100 : incident ? 72 : 100;
@@ -127,7 +141,7 @@ function snapshot(run) {
   ].map(([id, name, technology, count, state]) => ({ id, name, technology, count, state }));
   const activeIncident = incident && !run.replayed;
   return {
-    id: run.id, status: run.status, step: run.step, scenario, created_at: run.createdAt, updated_at: run.updatedAt,
+    id: run.id, status: run.status, step: run.step, scenario, sample, created_at: run.createdAt, updated_at: run.updatedAt,
     metrics: { processed, accepted, quarantined, quality_score: quality, consumer_lag_seconds: lag, estimated_cost_usd: Number((processed * 0.0000027).toFixed(4)) },
     stages, checks, actions: run.actions,
     incident: activeIncident || run.repaired ? {
@@ -142,8 +156,8 @@ function snapshot(run) {
 
 async function ensureDb(env) {
   if (!env.DB) return;
-  await env.DB.exec(`CREATE TABLE IF NOT EXISTS pipeline_runs (
-    id TEXT PRIMARY KEY, scenario_id TEXT NOT NULL, status TEXT NOT NULL, step INTEGER NOT NULL,
+  await env.DB.exec(`CREATE TABLE IF NOT EXISTS pipeline_runs_v2 (
+    id TEXT PRIMARY KEY, scenario_id TEXT NOT NULL, sample_id TEXT NOT NULL, status TEXT NOT NULL, step INTEGER NOT NULL,
     repaired INTEGER NOT NULL, replayed INTEGER NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, actions_json TEXT NOT NULL
   )`);
 }
@@ -151,18 +165,18 @@ async function ensureDb(env) {
 async function persist(run, env) {
   if (!env.DB) return;
   await ensureDb(env);
-  await env.DB.prepare(`INSERT INTO pipeline_runs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  await env.DB.prepare(`INSERT INTO pipeline_runs_v2 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET status=excluded.status, step=excluded.step, repaired=excluded.repaired,
     replayed=excluded.replayed, updated_at=excluded.updated_at, actions_json=excluded.actions_json`)
-    .bind(run.id, run.scenarioId, run.status, run.step, Number(run.repaired), Number(run.replayed), run.createdAt, run.updatedAt, JSON.stringify(run.actions)).run();
+    .bind(run.id, run.scenarioId, run.sampleId, run.status, run.step, Number(run.repaired), Number(run.replayed), run.createdAt, run.updatedAt, JSON.stringify(run.actions)).run();
 }
 
 async function load(id, env) {
   if (!env.DB) return null;
   await ensureDb(env);
-  const row = await env.DB.prepare("SELECT * FROM pipeline_runs WHERE id = ?").bind(id).first();
+  const row = await env.DB.prepare("SELECT * FROM pipeline_runs_v2 WHERE id = ?").bind(id).first();
   if (!row) return null;
-  return { id: row.id, scenarioId: row.scenario_id, status: row.status, step: row.step, repaired: Boolean(row.repaired), replayed: Boolean(row.replayed), createdAt: row.created_at, updatedAt: row.updated_at, actions: JSON.parse(row.actions_json) };
+  return { id: row.id, scenarioId: row.scenario_id, sampleId: row.sample_id, status: row.status, step: row.step, repaired: Boolean(row.repaired), replayed: Boolean(row.replayed), createdAt: row.created_at, updatedAt: row.updated_at, actions: JSON.parse(row.actions_json) };
 }
 
 function json(body, status = 200) {

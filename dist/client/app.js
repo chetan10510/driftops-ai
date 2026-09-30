@@ -6,7 +6,16 @@ const fallbackScenarios = [
   { id: "model_drift", name: "Feature distribution drift", risk: "Unreliable churn alerts", icon: "activity" },
 ];
 
-const state = { scenarios: fallbackScenarios, selected: "schema_drift", run: null, busy: false, timeline: [] };
+const fallbackSamples = [
+  { id: "commerce_orders", name: "Commerce orders", industry: "E-commerce", description: "Checkout, catalog, and refund events feeding revenue and customer marts.", sources: ["Checkout API", "Postgres CDC", "Refund API"], events_per_batch: 1240, recommended_scenario: "duplicate_burst", icon: "shopping-cart" },
+  { id: "saas_subscriptions", name: "SaaS subscriptions", industry: "B2B SaaS", description: "Product usage and billing changes feeding account health and renewal features.", sources: ["Product events", "Stripe", "CRM"], events_per_batch: 980, recommended_scenario: "schema_drift", icon: "boxes" },
+  { id: "fintech_payments", name: "Fintech payments", industry: "Financial services", description: "Authorized payments and support events with strict privacy controls.", sources: ["Payment gateway", "Ledger CDC", "Support API"], events_per_batch: 1560, recommended_scenario: "pii_leak", icon: "landmark" },
+  { id: "mobile_sessions", name: "Mobile sessions", industry: "Consumer app", description: "Online and offline sessions feeding engagement and retention features.", sources: ["iOS events", "Android events", "Push service"], events_per_batch: 1840, recommended_scenario: "late_events", icon: "smartphone" },
+  { id: "logistics_shipments", name: "Logistics shipments", industry: "Supply chain", description: "Scanner and carrier events feeding ETA and exception workflows.", sources: ["Warehouse scanners", "Carrier API", "GPS stream"], events_per_batch: 2110, recommended_scenario: "schema_drift", icon: "truck" },
+  { id: "churn_features", name: "Customer churn", industry: "Machine learning", description: "Usage, billing, and support signals feeding an explainable churn model.", sources: ["Feature store", "Billing", "Support cases"], events_per_batch: 720, recommended_scenario: "model_drift", icon: "brain-circuit" },
+];
+
+const state = { scenarios: fallbackScenarios, samples: fallbackSamples, selected: "duplicate_burst", selectedSample: "commerce_orders", setupStep: 1, run: null, busy: false, timeline: [] };
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
 const icons = () => window.lucide?.createIcons({ attrs: { "stroke-width": 1.8 } });
@@ -14,13 +23,15 @@ const format = (value) => Number(value || 0).toLocaleString("en-US");
 
 document.addEventListener("DOMContentLoaded", async () => {
   bindEvents();
+  renderSamples();
   renderScenarios();
   icons();
   try {
-    const response = await fetch("/api/scenarios");
-    if (response.ok) {
-      const data = await response.json();
-      state.scenarios = data.scenarios;
+    const [scenarioResponse, sampleResponse] = await Promise.all([fetch("/api/scenarios"), fetch("/api/samples")]);
+    if (scenarioResponse.ok && sampleResponse.ok) {
+      state.scenarios = (await scenarioResponse.json()).scenarios;
+      state.samples = (await sampleResponse.json()).samples;
+      renderSamples();
       renderScenarios();
     }
   } catch (_) {
@@ -31,6 +42,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 function bindEvents() {
   $("#enter-btn").addEventListener("click", enterApp);
   $("#brand-home").addEventListener("click", (event) => { event.preventDefault(); resetToSetup(); });
+  $("#continue-btn").addEventListener("click", showIncidentStep);
+  $("#back-btn").addEventListener("click", showSampleStep);
   $("#launch-btn").addEventListener("click", launchRun);
   $("#advance-btn").addEventListener("click", () => mutate("tick"));
   $("#repair-btn").addEventListener("click", () => mutate("repair"));
@@ -40,6 +53,24 @@ function bindEvents() {
   $("#close-dialog").addEventListener("click", () => $("#architecture-dialog").close());
   $("#export-btn").addEventListener("click", exportRun);
   $$(".side-nav button").forEach((button) => button.addEventListener("click", () => setView(button.dataset.view)));
+}
+
+function renderSamples() {
+  $("#sample-grid").innerHTML = state.samples.map((sample) => `
+    <button class="sample-card ${sample.id === state.selectedSample ? "selected" : ""}" data-sample="${sample.id}">
+      <span class="scenario-check"><i data-lucide="check"></i></span>
+      <span class="scenario-icon"><i data-lucide="${sample.icon}"></i></span>
+      <h3>${sample.name}</h3><p>${sample.description}</p>
+      <span class="sample-meta"><i data-lucide="radio-tower"></i>${format(sample.events_per_batch)} events / batch · ${sample.industry}</span>
+    </button>`).join("");
+  $$(".sample-card").forEach((card) => card.addEventListener("click", () => {
+    state.selectedSample = card.dataset.sample;
+    const sample = state.samples.find((item) => item.id === state.selectedSample);
+    state.selected = sample?.recommended_scenario || state.selected;
+    $("#selected-name").textContent = sample?.name || "Workload";
+    renderSamples();
+  }));
+  icons();
 }
 
 function enterApp() {
@@ -64,14 +95,48 @@ function renderScenarios() {
   icons();
 }
 
+function showIncidentStep() {
+  state.setupStep = 2;
+  const sample = state.samples.find((item) => item.id === state.selectedSample);
+  if (sample) state.selected = sample.recommended_scenario;
+  $("#sample-grid").classList.add("hidden");
+  $("#scenario-grid").classList.remove("hidden");
+  $("#setup-kicker").textContent = "Failure mode 02";
+  $("#setup-title").textContent = "Choose what breaks";
+  $("#setup-description").textContent = `${sample?.name || "This workload"} can run against any production incident. The recommended test is preselected.`;
+  $("#selected-label").textContent = "Incident";
+  $("#selected-name").textContent = state.scenarios.find((item) => item.id === state.selected)?.name || "Incident";
+  $("#continue-btn").classList.add("hidden");
+  $("#back-btn").classList.remove("hidden");
+  $("#launch-btn").classList.remove("hidden");
+  $("#step-two").classList.add("active");
+  renderScenarios();
+}
+
+function showSampleStep() {
+  state.setupStep = 1;
+  const sample = state.samples.find((item) => item.id === state.selectedSample);
+  $("#sample-grid").classList.remove("hidden");
+  $("#scenario-grid").classList.add("hidden");
+  $("#setup-kicker").textContent = "Test data 01";
+  $("#setup-title").textContent = "Choose a workload";
+  $("#setup-description").textContent = "Start with a realistic business stream. Every sample has its own sources, volume, and recommended incident.";
+  $("#selected-label").textContent = "Workload";
+  $("#selected-name").textContent = sample?.name || "Workload";
+  $("#continue-btn").classList.remove("hidden");
+  $("#back-btn").classList.add("hidden");
+  $("#launch-btn").classList.add("hidden");
+  $("#step-two").classList.remove("active");
+}
+
 async function launchRun() {
   if (state.busy) return;
   setBusy(true);
   try {
-    const response = await fetch("/api/runs", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ scenario: state.selected }) });
+    const response = await fetch("/api/runs", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ scenario: state.selected, sample: state.selectedSample }) });
     if (!response.ok) throw new Error("Could not launch the pipeline");
     state.run = await response.json();
-    state.timeline = [{ tone: "ok", message: "Run created from contract v2.1", at: new Date() }];
+    state.timeline = [{ tone: "ok", message: `${state.run.sample.name} loaded from ${state.run.sample.sources.length} source systems`, at: new Date() }, { tone: "ok", message: "Run created from contract v2.1", at: new Date() }];
     $("#setup").classList.add("hidden");
     $("#workspace").classList.remove("hidden");
     $("#run-meta").classList.remove("hidden");
@@ -124,7 +189,7 @@ function renderRun() {
   $("#run-id").textContent = `Run ${run.id}`;
   $("#run-status").textContent = titleCase(run.status);
   $("#incident-kicker").textContent = run.status === "incident" ? "Incident detected" : run.status === "healthy" ? "Recovery verified" : "Live pipeline";
-  $("#work-title").textContent = run.scenario.name;
+  $("#work-title").textContent = `${run.sample.name} · ${run.scenario.name}`;
   $("#metric-processed").textContent = format(run.metrics.processed);
   $("#metric-accepted").textContent = format(run.metrics.accepted);
   $("#metric-quarantined").textContent = format(run.metrics.quarantined);
@@ -181,7 +246,7 @@ function renderQuarantine(run) {
 }
 
 function renderLineage(run) {
-  const nodes = [["Source", "checkout-api v3.4"], ["Dataset", "customer_events"], ["Transform", "identity_resolve"], ["Feature set", "churn_features"], ["Model", run.lineage.model_version]];
+  const nodes = [["Source", run.sample.sources[0]], ["Dataset", run.sample.id], ["Transform", "contract_validate"], ["Gold asset", "customer_features"], ["Model", run.lineage.model_version]];
   $("#lineage-graph").innerHTML = nodes.map(([label, value]) => `<article class="lineage-node"><span>${label}</span><strong>${value}</strong></article>`).join("");
   $("#lineage-hash").textContent = run.lineage.content_hash;
   $("#lineage-details").innerHTML = [["Run ID", run.id], ["Contract", run.lineage.input_contract], ["Code", run.lineage.code_version], ["Dataset hash", run.lineage.content_hash]].map(([key, value]) => `<div><span>${key}</span><strong>${value}</strong></div>`).join("");
@@ -198,6 +263,7 @@ function resetToSetup() {
   $("#workspace").classList.add("hidden");
   $("#run-meta").classList.add("hidden");
   $("#setup").classList.remove("hidden");
+  showSampleStep();
   setView("operate");
   window.scrollTo({ top: 0, behavior: "smooth" });
 }

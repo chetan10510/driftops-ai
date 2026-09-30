@@ -26,7 +26,7 @@
       <button id="enter-btn" class="primary large">Start incident <i data-lucide="arrow-right"></i></button>
     </div>
     <div class="welcome-proof" aria-label="System capabilities">
-      <span><b>5</b> incident modes</span><span><b>3</b> data layers</span><span><b>100%</b> replayable</span>
+      <span><b>6</b> test workloads</span><span><b>5</b> incident modes</span><span><b>100%</b> replayable</span>
     </div>
   </section>
 
@@ -41,16 +41,17 @@
     </header>
 
     <section id="setup" class="setup-shell">
-      <div class="stepper" aria-label="Setup progress"><span class="active"></span><span></span><span></span></div>
+      <div class="stepper" aria-label="Setup progress"><span id="step-one" class="active"></span><span id="step-two"></span><span id="step-three"></span></div>
       <div class="setup-copy">
-        <p class="eyebrow dark">Incident 01</p>
-        <h2>Choose what breaks</h2>
-        <p>Each scenario uses the same customer 360 pipeline and a different production contract.</p>
+        <p class="eyebrow dark" id="setup-kicker">Test data 01</p>
+        <h2 id="setup-title">Choose a workload</h2>
+        <p id="setup-description">Start with a realistic business stream. Every sample has its own sources, volume, and recommended incident.</p>
       </div>
-      <div id="scenario-grid" class="scenario-grid" aria-live="polite"></div>
+      <div id="sample-grid" class="sample-grid" aria-live="polite"></div>
+      <div id="scenario-grid" class="scenario-grid hidden" aria-live="polite"></div>
       <div class="setup-footer">
-        <div class="selected-summary"><span>Selected</span><strong id="selected-name">Breaking schema drift</strong></div>
-        <div class="setup-actions"><button class="secondary architecture-trigger"><i data-lucide="network"></i>Architecture</button><button id="launch-btn" class="primary">Launch pipeline <i data-lucide="play"></i></button></div>
+        <div class="selected-summary"><span id="selected-label">Workload</span><strong id="selected-name">Commerce orders</strong></div>
+        <div class="setup-actions"><button class="secondary architecture-trigger"><i data-lucide="network"></i>Architecture</button><button id="back-btn" class="secondary hidden"><i data-lucide="arrow-left"></i>Back</button><button id="continue-btn" class="primary">Choose incident <i data-lucide="arrow-right"></i></button><button id="launch-btn" class="primary hidden">Launch pipeline <i data-lucide="play"></i></button></div>
       </div>
     </section>
 

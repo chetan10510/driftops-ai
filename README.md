@@ -6,11 +6,24 @@ DriftOps is an interactive data reliability and ML operations lab. A reviewer ch
 
 ## 90-second recruiter test
 
-1. Select **Breaking schema drift** and launch the pipeline.
-2. Watch the fourth micro-batch isolate bad events while valid Bronze data remains available.
-3. Inspect the failed contract, quarantined payloads, AI root cause, and run lineage.
-4. Apply the repair and replay the dead-letter queue.
-5. Confirm zero quarantined events, five passing checks, and a healthy serving layer.
+1. Choose one of six workloads, such as **Fintech payments** or **Logistics shipments**.
+2. Accept its recommended incident or select a different failure mode.
+3. Watch the fourth micro-batch isolate bad events while valid Bronze data remains available.
+4. Inspect the failed contract, quarantined payloads, AI root cause, and run lineage.
+5. Apply the repair, replay the dead-letter queue, and confirm all checks pass.
+
+## Built-in test matrix
+
+| Workload | Sources | Recommended incident | Events per batch |
+| --- | --- | --- | ---: |
+| Commerce orders | Checkout API, Postgres CDC, Refund API | Duplicate burst | 1,240 |
+| SaaS subscriptions | Product events, Stripe, CRM | Schema drift | 980 |
+| Fintech payments | Payment gateway, Ledger CDC, Support API | PII breach | 1,560 |
+| Mobile sessions | iOS, Android, Push service | Late events | 1,840 |
+| Logistics shipments | Scanners, Carrier API, GPS | Schema drift | 2,110 |
+| Customer churn | Feature store, Billing, Support | Model drift | 720 |
+
+Every workload can be combined with every incident, providing 30 recruiter-testable paths rather than one scripted walkthrough.
 
 ## Why this is not a dashboard
 
@@ -69,6 +82,7 @@ docker compose up --build
 
 ```text
 GET  /health
+GET  /api/samples
 GET  /api/scenarios
 POST /api/runs
 GET  /api/runs/{run_id}

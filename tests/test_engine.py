@@ -1,6 +1,6 @@
 import unittest
 
-from driftops.engine import SCENARIOS, create_run
+from driftops.engine import SAMPLES, SCENARIOS, create_run
 
 
 class PipelineRunTests(unittest.TestCase):
@@ -30,6 +30,17 @@ class PipelineRunTests(unittest.TestCase):
         self.assertEqual(0, snapshot["metrics"]["quarantined"])
         self.assertEqual(100, snapshot["metrics"]["quality_score"])
         self.assertTrue(all(check["status"] == "pass" for check in snapshot["checks"]))
+
+    def test_every_sample_runs_with_its_recommended_incident(self):
+        for sample_id, sample in SAMPLES.items():
+            with self.subTest(sample=sample_id):
+                run = create_run(sample.recommended_scenario, sample_id)
+                for _ in range(4):
+                    run.tick()
+                snapshot = run.snapshot()
+                self.assertEqual(sample_id, snapshot["sample"]["id"])
+                self.assertEqual(sample.events_per_batch * 4, snapshot["metrics"]["processed"])
+                self.assertEqual("incident", snapshot["status"])
 
 
 if __name__ == "__main__":

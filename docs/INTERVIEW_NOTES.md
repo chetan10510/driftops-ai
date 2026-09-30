@@ -2,10 +2,12 @@
 
 ## Two-minute walkthrough
 
-1. Launch **Breaking schema drift** and let the fourth micro-batch fail.
+1. Choose **Fintech payments**, keep its recommended **PII contract breach**, and let the fourth micro-batch fail.
 2. Show that Bronze retains the input while Silver isolates 24 invalid events and Gold is blocked.
 3. Open **Quality** to identify the one failing contract and **Lineage** to identify the producer release.
 4. Apply the versioned field mapping, replay quarantine, and confirm every invariant returns to green.
+
+For a second walkthrough, combine **Mobile sessions** with **Late events** to discuss event-time watermarks, state growth, and backfill windows. For ML roles, combine **Customer churn** with **Feature distribution drift** and show the dataset/model lineage.
 
 ## Questions this project can answer
 
