@@ -1,0 +1,10 @@
+version: 2
+sources:
+  - name: silver
+    schema: silver
+    tables:
+      - name: customer_events
+        loaded_at_field: ingested_at
+        freshness:
+          warn_after: {count: 5, period: minute}
+          error_after: {count: 15, period: minute}

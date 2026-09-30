@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="DriftOps AI is an interactive data reliability and incident recovery lab.">
+  <title>DriftOps AI</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <section id="welcome" class="welcome" aria-labelledby="welcome-title">
+    <img class="welcome-art" src="/assets/pipeline-incident-hero.png" alt="Data pipeline diverting failed records into quarantine">
+    <div class="welcome-shade"></div>
+    <header class="welcome-nav">
+      <a class="brand brand-light" href="/" aria-label="DriftOps AI home"><span class="brand-mark">D</span><span>DriftOps AI</span></a>
+      <a class="ghost-link" href="https://github.com/chetan10510/driftops-ai" target="_blank" rel="noreferrer">View source <i data-lucide="arrow-up-right"></i></a>
+    </header>
+    <div class="welcome-copy">
+      <p class="eyebrow">Data reliability incident lab</p>
+      <h1 id="welcome-title">Break the pipeline.<br>Prove the recovery.</h1>
+      <p>Operate a customer data system through a production failure, from contract breach to replay.</p>
+      <button id="enter-btn" class="primary large">Start incident <i data-lucide="arrow-right"></i></button>
+    </div>
+    <div class="welcome-proof" aria-label="System capabilities">
+      <span><b>5</b> incident modes</span><span><b>3</b> data layers</span><span><b>100%</b> replayable</span>
+    </div>
+  </section>
+
+  <main id="app" class="app hidden">
+    <header class="topbar">
+      <a class="brand" href="#" id="brand-home"><span class="brand-mark">D</span><span>DriftOps AI</span></a>
+      <div class="run-meta hidden" id="run-meta"><span class="live-dot"></span><span id="run-id">Run</span><span class="divider"></span><span id="run-status">Running</span></div>
+      <nav class="top-actions">
+        <button id="architecture-btn" class="icon-btn" title="Architecture" aria-label="Architecture"><i data-lucide="network"></i></button>
+        <a class="icon-btn" href="https://github.com/chetan10510/driftops-ai" target="_blank" rel="noreferrer" title="GitHub" aria-label="GitHub"><i data-lucide="github"></i></a>
+      </nav>
+    </header>
+
+    <section id="setup" class="setup-shell">
+      <div class="stepper" aria-label="Setup progress"><span class="active"></span><span></span><span></span></div>
+      <div class="setup-copy">
+        <p class="eyebrow dark">Incident 01</p>
+        <h2>Choose what breaks</h2>
+        <p>Each scenario uses the same customer 360 pipeline and a different production contract.</p>
+      </div>
+      <div id="scenario-grid" class="scenario-grid" aria-live="polite"></div>
+      <div class="setup-footer">
+        <div class="selected-summary"><span>Selected</span><strong id="selected-name">Breaking schema drift</strong></div>
+        <button id="launch-btn" class="primary">Launch pipeline <i data-lucide="play"></i></button>
+      </div>
+    </section>
+
+    <section id="workspace" class="workspace hidden">
+      <aside class="sidebar">
+        <div class="sidebar-head"><span>Control room</span><button id="new-run" class="icon-btn small" title="New run" aria-label="New run"><i data-lucide="rotate-ccw"></i></button></div>
+        <nav class="side-nav">
+          <button class="active" data-view="operate"><i data-lucide="workflow"></i><span>Operate</span></button>
+          <button data-view="quality"><i data-lucide="shield-check"></i><span>Quality</span><span id="quality-count" class="nav-count">5</span></button>
+          <button data-view="quarantine"><i data-lucide="archive-x"></i><span>Quarantine</span><span id="quarantine-count" class="nav-count">0</span></button>
+          <button data-view="lineage"><i data-lucide="git-branch"></i><span>Lineage</span></button>
+        </nav>
+        <div class="sidebar-foot">
+          <span>Contract</span><strong>customer-event v2.1</strong>
+          <span>Delivery</span><strong>at-least-once</strong>
+        </div>
+      </aside>
+
+      <div class="workarea">
+        <header class="work-header">
+          <div><p class="eyebrow dark" id="incident-kicker">Live pipeline</p><h2 id="work-title">Customer 360</h2></div>
+          <div class="run-actions">
+            <button id="advance-btn" class="secondary"><i data-lucide="fast-forward"></i><span>Process batch</span></button>
+            <button id="repair-btn" class="primary danger hidden"><i data-lucide="wrench"></i><span>Apply repair</span></button>
+            <button id="replay-btn" class="primary hidden"><i data-lucide="refresh-cw"></i><span>Replay quarantine</span></button>
+          </div>
+        </header>
+
+        <div id="operate-view" class="view active">
+          <section class="metric-strip" aria-label="Pipeline metrics">
+            <article><span>Processed</span><strong id="metric-processed">0</strong><small>events</small></article>
+            <article><span>Accepted</span><strong id="metric-accepted">0</strong><small>events</small></article>
+            <article><span>Quarantined</span><strong id="metric-quarantined">0</strong><small>events</small></article>
+            <article><span>Consumer lag</span><strong id="metric-lag">0.0</strong><small>seconds</small></article>
+            <article><span>Run cost</span><strong id="metric-cost">$0.0000</strong><small>estimated</small></article>
+          </section>
+
+          <section class="pipeline-panel">
+            <div class="panel-heading"><div><h3>Event pipeline</h3><p id="pipeline-subtitle">Waiting for the first micro-batch</p></div><span id="health-pill" class="status-pill running">Running</span></div>
+            <div id="pipeline" class="pipeline"></div>
+          </section>
+
+          <div class="workspace-grid">
+            <section class="checks-panel">
+              <div class="panel-heading"><div><h3>Contract checks</h3><p>Enforced before data reaches Gold</p></div><span id="quality-score" class="score-ring">100</span></div>
+              <div id="checks-list" class="checks-list"></div>
+            </section>
+            <section class="event-panel">
+              <div class="panel-heading"><div><h3>Incident timeline</h3><p>Run-level operational evidence</p></div><i data-lucide="list-tree"></i></div>
+              <div id="timeline" class="timeline"><div class="empty-state"><i data-lucide="radio"></i><p>Pipeline is ready.</p></div></div>
+            </section>
+          </div>
+        </div>
+
+        <div id="quality-view" class="view">
+          <section class="table-panel"><div class="panel-heading"><div><h3>Data contract</h3><p>customer-event v2.1 · blocking policy</p></div><span class="status-pill">Enforced</span></div><div id="quality-table" class="quality-table"></div></section>
+        </div>
+
+        <div id="quarantine-view" class="view">
+          <section class="table-panel"><div class="panel-heading"><div><h3>Quarantined events</h3><p>Raw payloads retained for repair and replay</p></div><button id="export-btn" class="secondary"><i data-lucide="download"></i><span>Export JSON</span></button></div><div class="table-wrap"><table><thead><tr><th>Event ID</th><th>Failed rule</th><th>Field</th><th>Observed value</th><th>State</th></tr></thead><tbody id="quarantine-table"></tbody></table></div></section>
+        </div>
+
+        <div id="lineage-view" class="view">
+          <section class="lineage-panel"><div class="panel-heading"><div><h3>Run lineage</h3><p>Reproducible inputs, code, model, and output</p></div><span id="lineage-hash" class="mono">pending</span></div><div id="lineage-graph" class="lineage-graph"></div><div id="lineage-details" class="lineage-details"></div></section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="architecture-dialog">
+    <div class="dialog-head"><div><p class="eyebrow dark">System design</p><h2>Production topology</h2></div><button class="icon-btn" id="close-dialog" aria-label="Close"><i data-lucide="x"></i></button></div>
+    <div class="architecture-flow">
+      <span>REST / CDC</span><i data-lucide="arrow-right"></i><span>Kafka</span><i data-lucide="arrow-right"></i><span>Spark</span><i data-lucide="arrow-right"></i><span>Iceberg</span><i data-lucide="arrow-right"></i><span>dbt</span><i data-lucide="arrow-right"></i><span>Feature API</span>
+    </div>
+    <div class="decision-grid"><article><h3>Failure boundary</h3><p>Invalid records move to a replayable dead-letter queue. Valid traffic continues.</p></article><article><h3>Processing guarantee</h3><p>At-least-once delivery plus idempotent event keys avoids silent loss.</p></article><article><h3>Scale boundary</h3><p>The live demo uses serverless state; the reference runtime uses Kafka and Spark.</p></article><article><h3>AI boundary</h3><p>Root-cause text is grounded in contract, lineage, and event evidence.</p></article></div>
+  </dialog>
+
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <script src="/app.js" type="module"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+name: driftops
+version: 1.0.0
+config-version: 2
+profile: driftops
+model-paths: ["models"]
+test-paths: ["tests"]
+models:
+  driftops:
+    staging:
+      +materialized: view
+    marts:
+      +materialized: incremental
+      +on_schema_change: fail

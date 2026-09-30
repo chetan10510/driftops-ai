@@ -1,0 +1,22 @@
+services:
+  api:
+    build: .
+    ports: ["8080:8080"]
+    depends_on: [redpanda, postgres]
+    environment:
+      DATABASE_URL: postgresql://driftops:driftops@postgres:5432/driftops
+      KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
+  redpanda:
+    image: redpandadata/redpanda:v24.2.15
+    command: redpanda start --smp 1 --memory 512M --overprovisioned --node-id 0 --kafka-addr 0.0.0.0:9092 --advertise-kafka-addr redpanda:9092
+    ports: ["19092:9092"]
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: driftops
+      POSTGRES_PASSWORD: driftops
+      POSTGRES_DB: driftops
+    ports: ["15432:5432"]
+    volumes: ["postgres_data:/var/lib/postgresql/data"]
+volumes:
+  postgres_data:

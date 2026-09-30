@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://driftops.dev/contracts/customer-event-v2.1.json",
+  "title": "CustomerEvent",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["event_id", "customer_id", "event_type", "event_time"],
+  "properties": {
+    "event_id": {"type": "string", "minLength": 1},
+    "customer_id": {"type": "string", "minLength": 1},
+    "event_type": {"enum": ["page_view", "checkout", "support_case", "subscription_changed"]},
+    "event_time": {"type": "string", "format": "date-time"},
+    "order_total": {"type": ["number", "null"], "minimum": 0},
+    "customer_email": {"type": ["string", "null"], "pattern": "^tok_[a-f0-9]{16}$"},
+    "plan_tier": {"enum": ["free", "team", "business", null]}
+  }
+}

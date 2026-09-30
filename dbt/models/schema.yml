@@ -1,0 +1,16 @@
+version: 2
+models:
+  - name: stg_customer_events
+    columns:
+      - name: event_id
+        tests: [not_null, unique]
+      - name: customer_id
+        tests: [not_null]
+  - name: customer_features
+    columns:
+      - name: customer_id
+        tests: [not_null, unique]
+      - name: revenue_30d
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"

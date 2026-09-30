@@ -1,0 +1,9 @@
+fastapi==0.116.1
+uvicorn[standard]==0.35.0
+pydantic==2.11.7
+pyspark==4.0.0
+dbt-core==1.10.8
+dbt-postgres==1.9.0
+apache-airflow==3.0.6
+scikit-learn==1.7.2
+mlflow==3.3.2
