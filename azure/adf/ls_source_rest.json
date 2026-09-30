@@ -1,0 +1,1 @@
+{"name":"ls_source_rest","properties":{"type":"RestService","typeProperties":{"url":"https://api.example.com/","enableServerCertificateValidation":true,"authenticationType":"Anonymous"},"annotations":["replace-with-key-vault-auth-in-production"]}}

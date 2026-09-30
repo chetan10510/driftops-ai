@@ -1,0 +1,42 @@
+{
+  "name": "pl_customer360_incremental",
+  "properties": {
+    "description": "Metadata-driven ingestion and Databricks medallion orchestration",
+    "parameters": {
+      "windowStart": {"type": "String"},
+      "windowEnd": {"type": "String"},
+      "sourceName": {"type": "String", "defaultValue": "checkout"}
+    },
+    "activities": [
+      {
+        "name": "Copy_API_to_ADLS_Bronze",
+        "type": "Copy",
+        "policy": {"timeout": "0.01:00:00", "retry": 3, "retryIntervalInSeconds": 30},
+        "typeProperties": {
+          "source": {"type": "RestSource", "requestMethod": "GET", "httpRequestTimeout": "00:02:00", "paginationRules": {"AbsoluteUrl": "$.next"}},
+          "sink": {"type": "JsonSink", "storeSettings": {"type": "AzureBlobFSWriteSettings"}, "formatSettings": {"type": "JsonWriteSettings", "filePattern": "setOfObjects"}}
+        },
+        "inputs": [{"referenceName": "ds_source_api", "type": "DatasetReference", "parameters": {"windowStart": "@pipeline().parameters.windowStart", "windowEnd": "@pipeline().parameters.windowEnd"}}],
+        "outputs": [{"referenceName": "ds_adls_bronze", "type": "DatasetReference", "parameters": {"sourceName": "@pipeline().parameters.sourceName", "runId": "@pipeline().RunId"}}]
+      },
+      {
+        "name": "Validate_Bronze_Contract",
+        "type": "DatabricksNotebook",
+        "dependsOn": [{"activity": "Copy_API_to_ADLS_Bronze", "dependencyConditions": ["Succeeded"]}],
+        "policy": {"timeout": "0.02:00:00", "retry": 2, "retryIntervalInSeconds": 60},
+        "typeProperties": {"notebookPath": "/Repos/driftops/01_bronze_to_silver", "baseParameters": {"run_id": "@pipeline().RunId", "source_name": "@pipeline().parameters.sourceName"}},
+        "linkedServiceName": {"referenceName": "ls_azure_databricks", "type": "LinkedServiceReference"}
+      },
+      {
+        "name": "Build_Gold_Customer_Features",
+        "type": "DatabricksNotebook",
+        "dependsOn": [{"activity": "Validate_Bronze_Contract", "dependencyConditions": ["Succeeded"]}],
+        "policy": {"timeout": "0.02:00:00", "retry": 1, "retryIntervalInSeconds": 60},
+        "typeProperties": {"notebookPath": "/Repos/driftops/02_silver_to_gold", "baseParameters": {"run_id": "@pipeline().RunId"}},
+        "linkedServiceName": {"referenceName": "ls_azure_databricks", "type": "LinkedServiceReference"}
+      }
+    ],
+    "folder": {"name": "driftops/customer360"},
+    "annotations": ["medallion", "contract-enforced", "replayable"]
+  }
+}

@@ -1,0 +1,5 @@
+ADFPipelineRun
+| where TimeGenerated > ago(24h)
+| where Status != "Succeeded"
+| project TimeGenerated, PipelineName, RunId, Status, FailureType, Message
+| order by TimeGenerated desc

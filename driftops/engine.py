@@ -89,10 +89,10 @@ class PipelineRun:
             {"id": "drift", "name": "Feature drift", "status": "fail" if incident and not self.replayed and self.scenario.id == "model_drift" else "pass"},
         ]
         stages = [
-            {"id": "sources", "name": "Sources", "technology": "REST + CDC", "count": processed, "state": "healthy"},
-            {"id": "bronze", "name": "Bronze", "technology": "Kafka / Iceberg", "count": processed, "state": "healthy"},
-            {"id": "silver", "name": "Silver", "technology": "Spark", "count": good, "state": "warning" if bad else "healthy"},
-            {"id": "gold", "name": "Gold", "technology": "dbt / SQL", "count": good, "state": "blocked" if bad and not self.repaired else "healthy"},
+            {"id": "sources", "name": "Sources", "technology": "ADF + APIs", "count": processed, "state": "healthy"},
+            {"id": "bronze", "name": "Bronze", "technology": "Event Hubs / Delta", "count": processed, "state": "healthy"},
+            {"id": "silver", "name": "Silver", "technology": "Databricks PySpark", "count": good, "state": "warning" if bad else "healthy"},
+            {"id": "gold", "name": "Gold", "technology": "Databricks SQL", "count": good, "state": "blocked" if bad and not self.repaired else "healthy"},
             {"id": "serve", "name": "Feature API", "technology": "FastAPI", "count": good, "state": "blocked" if bad and not self.repaired else "healthy"},
         ]
         return {

@@ -1,0 +1,23 @@
+resources:
+  jobs:
+    driftops_customer360:
+      name: driftops-customer360
+      max_concurrent_runs: 1
+      job_clusters:
+        - job_cluster_key: small_ephemeral
+          new_cluster:
+            spark_version: 15.4.x-scala2.12
+            node_type_id: Standard_D4ds_v5
+            num_workers: 1
+            autotermination_minutes: 15
+      tasks:
+        - task_key: bronze_to_silver
+          job_cluster_key: small_ephemeral
+          notebook_task:
+            notebook_path: ../01_bronze_to_silver.py
+            base_parameters: {run_id: "{{job.run_id}}", source_name: checkout}
+        - task_key: silver_to_gold
+          depends_on: [{task_key: bronze_to_silver}]
+          job_cluster_key: small_ephemeral
+          notebook_task:
+            notebook_path: ../02_silver_to_gold.sql

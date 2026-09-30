@@ -1,0 +1,5 @@
+DriftOpsQuality_CL
+| where TimeGenerated > ago(1h)
+| summarize total=sum(Processed_d), rejected=sum(Quarantined_d), p95_lag=percentile(LagSeconds_d, 95) by bin(TimeGenerated, 5m)
+| extend acceptance_rate = 100.0 * (total - rejected) / total
+| where acceptance_rate < 99.5 or p95_lag > 60

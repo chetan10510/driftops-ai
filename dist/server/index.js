@@ -119,10 +119,10 @@ function snapshot(run) {
   ].map(([id, name]) => ({ id, name, status: incident && !run.replayed && checkIds[run.scenarioId] === id ? "fail" : "pass" }));
   const bad = quarantined > 0;
   const stages = [
-    ["sources", "Sources", "REST + CDC", processed, "healthy"],
-    ["bronze", "Bronze", "Kafka / Iceberg", processed, "healthy"],
-    ["silver", "Silver", "Spark", accepted, bad ? "warning" : "healthy"],
-    ["gold", "Gold", "dbt / SQL", accepted, bad && !run.repaired ? "blocked" : "healthy"],
+    ["sources", "Sources", "ADF + APIs", processed, "healthy"],
+    ["bronze", "Bronze", "Event Hubs / Delta", processed, "healthy"],
+    ["silver", "Silver", "Databricks PySpark", accepted, bad ? "warning" : "healthy"],
+    ["gold", "Gold", "Databricks SQL", accepted, bad && !run.repaired ? "blocked" : "healthy"],
     ["serve", "Feature API", "FastAPI", accepted, bad && !run.repaired ? "blocked" : "healthy"],
   ].map(([id, name, technology, count, state]) => ({ id, name, technology, count, state }));
   const activeIncident = incident && !run.replayed;

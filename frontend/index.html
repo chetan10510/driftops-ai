@@ -35,7 +35,7 @@
       <a class="brand" href="#" id="brand-home"><span class="brand-mark">D</span><span>DriftOps AI</span></a>
       <div class="run-meta hidden" id="run-meta"><span class="live-dot"></span><span id="run-id">Run</span><span class="divider"></span><span id="run-status">Running</span></div>
       <nav class="top-actions">
-        <button id="architecture-btn" class="icon-btn" title="Architecture" aria-label="Architecture"><i data-lucide="network"></i></button>
+        <button class="icon-btn architecture-trigger" title="Architecture" aria-label="Architecture"><i data-lucide="network"></i></button>
         <a class="icon-btn" href="https://github.com/chetan10510/driftops-ai" target="_blank" rel="noreferrer" title="GitHub" aria-label="GitHub"><i data-lucide="github"></i></a>
       </nav>
     </header>
@@ -50,7 +50,7 @@
       <div id="scenario-grid" class="scenario-grid" aria-live="polite"></div>
       <div class="setup-footer">
         <div class="selected-summary"><span>Selected</span><strong id="selected-name">Breaking schema drift</strong></div>
-        <button id="launch-btn" class="primary">Launch pipeline <i data-lucide="play"></i></button>
+        <div class="setup-actions"><button class="secondary architecture-trigger"><i data-lucide="network"></i>Architecture</button><button id="launch-btn" class="primary">Launch pipeline <i data-lucide="play"></i></button></div>
       </div>
     </section>
 
@@ -121,11 +121,15 @@
   </main>
 
   <dialog id="architecture-dialog">
-    <div class="dialog-head"><div><p class="eyebrow dark">System design</p><h2>Production topology</h2></div><button class="icon-btn" id="close-dialog" aria-label="Close"><i data-lucide="x"></i></button></div>
+    <div class="dialog-head"><div><p class="eyebrow dark">Azure lakehouse</p><h2>Production topology</h2></div><button class="icon-btn" id="close-dialog" aria-label="Close"><i data-lucide="x"></i></button></div>
     <div class="architecture-flow">
-      <span>REST / CDC</span><i data-lucide="arrow-right"></i><span>Kafka</span><i data-lucide="arrow-right"></i><span>Spark</span><i data-lucide="arrow-right"></i><span>Iceberg</span><i data-lucide="arrow-right"></i><span>dbt</span><i data-lucide="arrow-right"></i><span>Feature API</span>
+      <span>ADF / APIs</span><i data-lucide="arrow-right"></i><span>Event Hubs</span><i data-lucide="arrow-right"></i><span>ADLS Bronze</span><i data-lucide="arrow-right"></i><span>Databricks</span><i data-lucide="arrow-right"></i><span>Delta Gold</span><i data-lucide="arrow-right"></i><span>Feature API</span>
     </div>
-    <div class="decision-grid"><article><h3>Failure boundary</h3><p>Invalid records move to a replayable dead-letter queue. Valid traffic continues.</p></article><article><h3>Processing guarantee</h3><p>At-least-once delivery plus idempotent event keys avoids silent loss.</p></article><article><h3>Scale boundary</h3><p>The live demo uses serverless state; the reference runtime uses Kafka and Spark.</p></article><article><h3>AI boundary</h3><p>Root-cause text is grounded in contract, lineage, and event evidence.</p></article></div>
+    <div class="runtime-compare">
+      <article><span>Runs in this live demo</span><strong>Cloudflare Worker + D1</strong><p>The exact incident state machine, contracts, quarantine, lineage, repair, and replay flow.</p></article>
+      <article><span>Runs in Azure production</span><strong>ADF + Event Hubs + ADLS + Databricks</strong><p>Distributed ingestion, Delta medallion tables, PySpark transforms, SQL serving, and Azure Monitor.</p></article>
+    </div>
+    <div class="decision-grid"><article><h3>Failure boundary</h3><p>Invalid records move to a replayable Delta quarantine table. Valid traffic continues.</p></article><article><h3>Processing guarantee</h3><p>Event Hubs uses Kafka-compatible at-least-once delivery with idempotent event keys.</p></article><article><h3>Orchestration boundary</h3><p>ADF owns source ingestion and job dependencies; Airflow owns portable backfills and recovery runs.</p></article><article><h3>AI boundary</h3><p>Root-cause text explains contract and lineage evidence. Deterministic checks decide pass or fail.</p></article></div>
   </dialog>
 
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>

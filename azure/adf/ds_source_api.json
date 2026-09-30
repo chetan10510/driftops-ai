@@ -1,0 +1,1 @@
+{"name":"ds_source_api","properties":{"linkedServiceName":{"referenceName":"ls_source_rest","type":"LinkedServiceReference"},"parameters":{"windowStart":{"type":"String"},"windowEnd":{"type":"String"}},"type":"RestResource","typeProperties":{"relativeUrl":{"value":"@concat('events?start=', dataset().windowStart, '&end=', dataset().windowEnd)","type":"Expression"}},"schema":[]}}

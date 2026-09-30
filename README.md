@@ -2,7 +2,7 @@
 
 DriftOps is an interactive data reliability and ML operations lab. A reviewer chooses a production incident, watches customer events move through Bronze, Silver, and Gold, inspects the failed data contract and lineage, applies a repair, and replays quarantined records until the pipeline is healthy.
 
-**Live demo:** deployment pending
+**Live demo:** [driftops-ai.korivichetan5.chatgpt.site](https://driftops-ai.korivichetan5.chatgpt.site)
 
 ## 90-second recruiter test
 
@@ -20,25 +20,27 @@ Every action changes server-side run state. Invalid transitions return `409`, in
 
 - Versioned JSON and Avro data contracts with visible schema compatibility failures
 - At-least-once stream processing, idempotent keys, event-time watermarks, and per-record quarantine
-- Bronze/Silver/Gold modeling with Kafka, Spark Structured Streaming, Iceberg-compatible storage, dbt, and SQL
-- Airflow orchestration, source freshness, incremental models, and blocking quality tests
+- Azure Data Factory metadata-driven ingestion with parameters, retries, dependencies, and Databricks notebook activities
+- Event Hubs' Kafka endpoint, ADLS Gen2, Databricks/PySpark, and Delta Lake Bronze/Silver/Gold modeling
+- Airflow recovery/backfill orchestration, source freshness, incremental SQL models, and blocking quality tests
 - Run lineage across dataset, code, contract, and ML model versions
 - A reproducible churn baseline logged with MLflow and drift-ready categorical features
 - FastAPI/Pydantic REST contracts, a serverless Worker adapter, D1 persistence, and responsive UI
-- Docker Compose, Kubernetes health/resources, Terraform-managed GCP Pub/Sub and BigQuery
+- Docker Compose, Kubernetes health/resources, and Terraform-managed Azure infrastructure
 - A LookML semantic model for reliability and recovery metrics
 
 ## Architecture
 
-The hosted demo uses a Cloudflare Worker and D1 so anyone can test it instantly. The production reference implementation uses the same transition rules in Python and supplies the distributed components that would run under sustained volume.
+The hosted demo uses a Cloudflare Worker and D1 so anyone can test it instantly. The production reference implementation maps the same transition rules to Azure Event Hubs, ADLS Gen2, Azure Databricks, Delta Lake, Data Factory, Azure Monitor, and Log Analytics.
 
 ```text
-REST / CDC -> Kafka -> Spark validation -> Silver -> dbt Gold -> Feature API -> ML model
-                         |                                      |
-                         +-> quarantine -> repair/replay        +-> MLflow lineage
+ADF / APIs -> Event Hubs -> ADLS Bronze -> Databricks PySpark -> Delta Silver/Gold
+                                              |                         |
+                                              +-> quarantine/replay     +-> SQL / MLflow
 ```
 
 Read [Architecture](docs/ARCHITECTURE.md) for guarantees, boundaries, and tradeoffs. Read [Interview Notes](docs/INTERVIEW_NOTES.md) for the concise walkthrough and design questions.
+Read [Azure Deployment](docs/AZURE_DEPLOYMENT.md) for the resource plan, free-credit options, and strict cost controls.
 
 ## Run the domain tests
 
@@ -83,11 +85,12 @@ POST /api/runs/{run_id}/replay
 | `api/` | FastAPI/Pydantic REST runtime |
 | `worker/` | Hosted serverless runtime with D1 persistence |
 | `streaming/` | Spark Structured Streaming validation and quarantine job |
+| `azure/` | ADF pipeline, Databricks notebooks/job bundle, and Azure Monitor queries |
 | `dbt/` | Staging, incremental customer features, freshness and quality tests |
 | `orchestration/` | Airflow quality and lineage DAG |
 | `ml/` | Reproducible scikit-learn baseline with MLflow tracking |
 | `analytics/` | LookML reliability semantic model |
-| `infra/` | Kubernetes and Terraform deployment references |
+| `infra/` | Kubernetes and Azure Terraform deployment references |
 
 ## Responsible scope
 

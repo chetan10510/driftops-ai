@@ -36,7 +36,7 @@ function bindEvents() {
   $("#repair-btn").addEventListener("click", () => mutate("repair"));
   $("#replay-btn").addEventListener("click", () => mutate("replay"));
   $("#new-run").addEventListener("click", resetToSetup);
-  $("#architecture-btn").addEventListener("click", () => $("#architecture-dialog").showModal());
+  $$(".architecture-trigger").forEach((button) => button.addEventListener("click", () => $("#architecture-dialog").showModal()));
   $("#close-dialog").addEventListener("click", () => $("#architecture-dialog").close());
   $("#export-btn").addEventListener("click", exportRun);
   $$(".side-nav button").forEach((button) => button.addEventListener("click", () => setView(button.dataset.view)));
