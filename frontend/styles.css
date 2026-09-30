@@ -37,6 +37,8 @@ button { cursor: pointer; }
 .brand-mark { display: grid; place-items: center; width: 30px; height: 30px; background: var(--teal-bright); color: #0d2622; border-radius: 5px; font-weight: 900; }
 .ghost-link { display: inline-flex; align-items: center; gap: 8px; color: rgba(255,255,255,.86); text-decoration: none; font-size: 14px; }
 .ghost-link svg { width: 16px; }
+.welcome-links, .welcome-actions { display: flex; align-items: center; gap: 18px; }
+.welcome-actions { gap: 9px; }
 .welcome-copy { position: relative; z-index: 2; width: min(620px, calc(100% - 48px)); margin: 13vh 0 0 clamp(24px, 8vw, 132px); }
 .eyebrow { margin: 0 0 14px; color: var(--teal-bright); font-size: 12px; font-weight: 800; letter-spacing: 0; text-transform: uppercase; }
 .eyebrow.dark { color: var(--teal); }
@@ -51,6 +53,8 @@ button { cursor: pointer; }
 .primary:hover { background: #11695f; }
 .primary.large { min-height: 52px; padding: 0 22px; background: var(--teal-bright); color: #0d2622; }
 .primary.danger { background: var(--coral); }
+.welcome-secondary { min-height: 52px; padding: 0 20px; border: 1px solid rgba(255,255,255,.38); border-radius: 5px; color: white; background: rgba(9,12,11,.28); font-size: 14px; font-weight: 720; backdrop-filter: blur(6px); }
+.welcome-secondary:hover { border-color: rgba(255,255,255,.72); background: rgba(9,12,11,.52); }
 .secondary { background: var(--white); color: var(--ink); border-color: var(--line); }
 .secondary:hover { border-color: #aeb7b4; }
 .primary svg, .secondary svg { width: 17px; }
@@ -209,6 +213,17 @@ dialog::backdrop { background: rgba(8, 12, 11, .68); }
 .decision-grid article { padding: 16px; background: var(--paper); border-radius: 5px; }
 .decision-grid h3 { margin: 0; font-size: 12px; }
 .decision-grid p { margin: 8px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.guide-intro { max-width: 680px; margin: 15px 0 22px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.guide-steps { display: grid; grid-template-columns: 1fr 1fr; margin: 0; padding: 0; border: 1px solid var(--line); list-style: none; }
+.guide-steps li { display: grid; grid-template-columns: 34px 1fr; gap: 10px; padding: 16px; border-bottom: 1px solid var(--line); }
+.guide-steps li:nth-child(odd) { border-right: 1px solid var(--line); }
+.guide-steps li:nth-last-child(-n+2) { border-bottom: 0; }
+.guide-steps li > span { color: var(--teal); font-size: 9px; font-weight: 850; }
+.guide-steps strong { display: block; font-size: 12px; }
+.guide-steps p { margin: 5px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+.guide-proof { display: flex; gap: 18px; margin: 18px 0; color: var(--muted); font-size: 10px; }
+.guide-proof b { color: var(--ink); margin-right: 4px; }
+.guide-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .toast { position: fixed; right: 20px; bottom: 20px; z-index: 100; max-width: 350px; padding: 13px 16px; background: var(--dark); color: white; border-radius: 5px; box-shadow: var(--shadow); font-size: 12px; opacity: 0; transform: translateY(10px); pointer-events: none; transition: .2s; }
 .toast.show { opacity: 1; transform: translateY(0); }
 
@@ -226,6 +241,8 @@ dialog::backdrop { background: rgba(8, 12, 11, .68); }
 @media (max-width: 720px) {
   .welcome-nav { padding: 20px; }
   .ghost-link { font-size: 0; }
+  .welcome-links { gap: 9px; }
+  .welcome-links .ghost-link:first-child { display: none; }
   .welcome-copy { margin-top: 10vh; }
   .welcome h1 { font-size: 47px; }
   .welcome-proof { left: 24px; right: 24px; gap: 16px; justify-content: space-between; }
@@ -258,6 +275,10 @@ dialog::backdrop { background: rgba(8, 12, 11, .68); }
   .lineage-node:not(:last-child)::after { display: none; }
   .architecture-flow { flex-wrap: wrap; justify-content: center; }
   .decision-grid, .runtime-compare { grid-template-columns: 1fr; }
+  .guide-steps { grid-template-columns: 1fr; }
+  .guide-steps li, .guide-steps li:nth-child(odd), .guide-steps li:nth-last-child(-n+2) { border-right: 0; border-bottom: 1px solid var(--line); }
+  .guide-steps li:last-child { border-bottom: 0; }
+  .guide-proof { flex-direction: column; gap: 6px; }
 }
 
 @media (max-width: 430px) {
@@ -266,4 +287,5 @@ dialog::backdrop { background: rgba(8, 12, 11, .68); }
   .scenario-icon { margin-bottom: 14px; }
   .setup-footer { align-items: flex-end; }
   .selected-summary { max-width: 48%; }
+  .welcome-actions { align-items: stretch; flex-direction: column; }
 }

@@ -6,7 +6,11 @@ DriftOps is an interactive data reliability and ML operations lab. A reviewer ch
 
 **Source:** [github.com/chetan10510/driftops-ai](https://github.com/chetan10510/driftops-ai)
 
+**Companion AI engineering project:** [TraceForge AI](https://traceforge-ai.korivichetan5.chatgpt.site)
+
 ## 90-second recruiter test
+
+Use **90-second recruiter test** on the welcome screen to launch the recommended Mobile sessions + Late events path immediately, or explore the full matrix:
 
 1. Choose one of six workloads, such as **Fintech payments** or **Logistics shipments**.
 2. Accept its recommended incident or select a different failure mode.

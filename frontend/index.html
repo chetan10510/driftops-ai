@@ -17,13 +17,13 @@
     <div class="welcome-shade"></div>
     <header class="welcome-nav">
       <a class="brand brand-light" href="/" aria-label="DriftOps AI home"><span class="brand-mark">D</span><span>DriftOps AI</span></a>
-      <a class="ghost-link" href="https://github.com/chetan10510/driftops-ai" target="_blank" rel="noreferrer">View source <i data-lucide="arrow-up-right"></i></a>
+      <nav class="welcome-links"><a class="ghost-link" href="https://traceforge-ai.korivichetan5.chatgpt.site" target="_blank" rel="noreferrer">TraceForge AI</a><a class="ghost-link" href="https://github.com/chetan10510/driftops-ai" target="_blank" rel="noreferrer">View source <i data-lucide="arrow-up-right"></i></a></nav>
     </header>
     <div class="welcome-copy">
       <p class="eyebrow">Data reliability incident lab</p>
       <h1 id="welcome-title">Break the pipeline.<br>Prove the recovery.</h1>
       <p>Operate a customer data system through a production failure, from contract breach to replay.</p>
-      <button id="enter-btn" class="primary large">Start incident <i data-lucide="arrow-right"></i></button>
+      <div class="welcome-actions"><button id="enter-btn" class="primary large">Start incident <i data-lucide="arrow-right"></i></button><button id="guide-btn" class="welcome-secondary">90-second recruiter test</button></div>
     </div>
     <div class="welcome-proof" aria-label="System capabilities">
       <span><b>6</b> test workloads</span><span><b>5</b> incident modes</span><span><b>100%</b> replayable</span>
@@ -131,6 +131,19 @@
       <article><span>Runs in Azure production</span><strong>ADF + Event Hubs + ADLS + Databricks</strong><p>Distributed ingestion, Delta medallion tables, PySpark transforms, SQL serving, and Azure Monitor.</p></article>
     </div>
     <div class="decision-grid"><article><h3>Failure boundary</h3><p>Invalid records move to a replayable Delta quarantine table. Valid traffic continues.</p></article><article><h3>Processing guarantee</h3><p>Event Hubs uses Kafka-compatible at-least-once delivery with idempotent event keys.</p></article><article><h3>Orchestration boundary</h3><p>ADF owns source ingestion and job dependencies; Airflow owns portable backfills and recovery runs.</p></article><article><h3>AI boundary</h3><p>Root-cause text explains contract and lineage evidence. Deterministic checks decide pass or fail.</p></article></div>
+  </dialog>
+
+  <dialog id="guide-dialog" class="guide-dialog">
+    <div class="dialog-head"><div><p class="eyebrow dark">Recruiter mode</p><h2>Operate one complete incident</h2></div><button class="icon-btn" id="close-guide" aria-label="Close"><i data-lucide="x"></i></button></div>
+    <p class="guide-intro">The recommended run demonstrates streaming failure detection, quarantine, root-cause evidence, repair, replay, and lineage without requiring an account or API key.</p>
+    <ol class="guide-steps">
+      <li><span>01</span><div><strong>Trigger late mobile events</strong><p>Watch five source-to-serving stages process realistic micro-batches.</p></div></li>
+      <li><span>02</span><div><strong>Inspect the blast radius</strong><p>Review lag, failed freshness checks, quarantined rows, and incident evidence.</p></div></li>
+      <li><span>03</span><div><strong>Repair and replay</strong><p>Apply the remediation, replay the dead-letter queue, and verify all contracts return to green.</p></div></li>
+      <li><span>04</span><div><strong>Audit reproducibility</strong><p>Open lineage for the input contract, code version, model version, and content hash.</p></div></li>
+    </ol>
+    <div class="guide-proof"><span><b>Live demo</b> Worker + D1 state machine</span><span><b>Production path</b> ADF + Event Hubs + Databricks</span><span><b>Coverage</b> 30 incident combinations</span></div>
+    <div class="guide-actions"><button id="guided-run" class="primary">Run recommended incident <i data-lucide="play"></i></button><button id="browse-samples" class="secondary">Browse all samples</button><button class="secondary architecture-trigger">View architecture</button></div>
   </dialog>
 
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>

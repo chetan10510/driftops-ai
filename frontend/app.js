@@ -41,6 +41,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 function bindEvents() {
   $("#enter-btn").addEventListener("click", enterApp);
+  $("#guide-btn").addEventListener("click", () => $("#guide-dialog").showModal());
+  $("#close-guide").addEventListener("click", () => $("#guide-dialog").close());
+  $("#browse-samples").addEventListener("click", () => {
+    $("#guide-dialog").close();
+    enterApp();
+  });
+  $("#guided-run").addEventListener("click", runGuidedIncident);
   $("#brand-home").addEventListener("click", (event) => { event.preventDefault(); resetToSetup(); });
   $("#continue-btn").addEventListener("click", showIncidentStep);
   $("#back-btn").addEventListener("click", showSampleStep);
@@ -49,10 +56,22 @@ function bindEvents() {
   $("#repair-btn").addEventListener("click", () => mutate("repair"));
   $("#replay-btn").addEventListener("click", () => mutate("replay"));
   $("#new-run").addEventListener("click", resetToSetup);
-  $$(".architecture-trigger").forEach((button) => button.addEventListener("click", () => $("#architecture-dialog").showModal()));
+  $$(".architecture-trigger").forEach((button) => button.addEventListener("click", () => {
+    if ($("#guide-dialog").open) $("#guide-dialog").close();
+    $("#architecture-dialog").showModal();
+  }));
   $("#close-dialog").addEventListener("click", () => $("#architecture-dialog").close());
   $("#export-btn").addEventListener("click", exportRun);
   $$(".side-nav button").forEach((button) => button.addEventListener("click", () => setView(button.dataset.view)));
+}
+
+async function runGuidedIncident() {
+  $("#guide-dialog").close();
+  state.selectedSample = "mobile_sessions";
+  state.selected = "late_events";
+  enterApp();
+  showIncidentStep();
+  await launchRun();
 }
 
 function renderSamples() {
