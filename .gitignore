@@ -4,3 +4,4 @@ __pycache__/
 .venv/
 .wrangler/
 .DS_Store
+.vercel/

@@ -2,11 +2,13 @@
 
 DriftOps is an interactive data reliability and ML operations lab. A reviewer chooses a production incident, watches customer events move through Bronze, Silver, and Gold, inspects the failed data contract and lineage, applies a repair, and replays quarantined records until the pipeline is healthy.
 
-**Live demo:** [driftops-ai.korivichetan5.chatgpt.site](https://driftops-ai.korivichetan5.chatgpt.site)
+**Live demo:** [driftops-ai.vercel.app](https://driftops-ai.vercel.app)
+
+**Fallback deployment:** [driftops-ai.korivichetan5.chatgpt.site](https://driftops-ai.korivichetan5.chatgpt.site)
 
 **Source:** [github.com/chetan10510/driftops-ai](https://github.com/chetan10510/driftops-ai)
 
-**Companion AI engineering project:** [TraceForge AI](https://traceforge-ai.korivichetan5.chatgpt.site)
+**Companion AI engineering project:** [TraceForge AI](https://traceforge-ai-chetan.vercel.app)
 
 ## 90-second recruiter test
 
